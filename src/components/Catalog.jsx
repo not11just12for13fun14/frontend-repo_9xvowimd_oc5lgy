@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Star, Heart, ShoppingBag } from 'lucide-react'
+import { useCart } from './CartContext'
 
 const fallbackProducts = [
   { id: '1', title: 'AeroMesh Sneakers', price: 129, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1200&auto=format&fit=crop', rating: 4.7, tag: 'New' },
-  { id: '2', title: 'Minimalist Backpack', price: 89, image: 'https://images.unsplash.com/photo-1581910245118-c0103c2fa995?ixid=M3w3OTkxMTl8MHwxfHNlYXJjaHwxfHxBZXJvTWVzaCUyMFNuZWFrZXJzfGVufDB8MHx8fDE3NjM2Njg2NDN8MA&ixlib=rb-4.1.0&w=1600&auto=format&fit=crop&q=80', rating: 4.6, tag: 'Hot' },
+  { id: '2', title: 'Minimalist Backpack', price: 89, image: 'https://images.unsplash.com/photo-1517433670267-08bbd4be890f?q=80&w=1200&auto=format&fit=crop', rating: 4.6, tag: 'Hot' },
   { id: '3', title: 'Wireless Headphones', price: 159, image: 'https://images.unsplash.com/photo-1581910245118-c0103c2fa995?ixid=M3w3OTkxMTl8MHwxfHNlYXJjaHwxfHxBZXJvTWVzaCUyMFNuZWFrZXJzfGVufDB8MHx8fDE3NjM2Njg2NDN8MA&ixlib=rb-4.1.0&w=1600&auto=format&fit=crop&q=80', rating: 4.8, tag: 'Sale' },
   { id: '4', title: 'Smartwatch Pro', price: 199, image: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=1200&auto=format&fit=crop', rating: 4.5, tag: 'New' },
 ]
@@ -12,15 +13,25 @@ const fallbackProducts = [
 export default function Catalog() {
   const [products, setProducts] = useState(fallbackProducts)
   const [loading, setLoading] = useState(true)
+  const { addToCart } = useCart()
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        // In a full app, fetch from backend database
-        // const base = import.meta.env.VITE_BACKEND_URL
-        // const res = await fetch(`${base}/api/products`)
-        // const data = await res.json()
-        // setProducts(data)
+        const base = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000'
+        const res = await fetch(`${base}/api/products`)
+        if (res.ok) {
+          const data = await res.json()
+          const mapped = data.map((d) => ({
+            id: d.id,
+            title: d.title,
+            price: d.price,
+            image: d.image,
+            rating: d.rating ?? 4.6,
+            tag: 'Hot',
+          }))
+          setProducts(mapped)
+        }
       } catch (e) {
         // silent fallback to static
       } finally {
@@ -61,10 +72,10 @@ export default function Catalog() {
                       <span className="text-blue-100/80">{p.rating}</span>
                     </div>
                   </div>
-                  <div className="text-white font-bold">${'{'}p.price{'}'}</div>
+                  <div className="text-white font-bold">${p.price}</div>
                 </div>
                 <div className="mt-4 flex items-center gap-2">
-                  <button className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-400 text-white font-medium shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-shadow">
+                  <button onClick={() => addToCart(p)} className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-400 text-white font-medium shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-shadow">
                     <ShoppingBag className="w-4 h-4" /> Add to cart
                   </button>
                   <button className="p-2 rounded-xl bg-white/10 text-white hover:bg-white/15">
@@ -75,6 +86,10 @@ export default function Catalog() {
             </motion.div>
           ))}
         </div>
+
+        {loading && (
+          <div className="mt-6 text-blue-100/80">Loading products…</div>
+        )}
       </div>
     </section>
   )

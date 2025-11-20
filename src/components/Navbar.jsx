@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { ShoppingCart, Menu, Search, Heart, User } from 'lucide-react'
+import CartDrawer from './CartDrawer'
+import { useCart } from './CartContext'
 
 function NavLink({ children }) {
   return (
@@ -11,6 +13,8 @@ function NavLink({ children }) {
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
+  const [cartOpen, setCartOpen] = useState(false)
+  const { totalItems } = useCart()
 
   return (
     <header className="relative z-20">
@@ -42,9 +46,11 @@ export default function Navbar() {
             <button className="p-2 rounded-lg hover:bg-white/10 transition-colors" aria-label="Wishlist">
               <Heart className="w-6 h-6" />
             </button>
-            <button className="relative p-2 rounded-lg hover:bg-white/10 transition-colors" aria-label="Cart">
+            <button onClick={() => setCartOpen(true)} className="relative p-2 rounded-lg hover:bg-white/10 transition-colors" aria-label="Cart">
               <ShoppingCart className="w-6 h-6" />
-              <span className="absolute -top-1 -right-1 text-[10px] bg-blue-500 text-white rounded-full px-1.5 py-0.5">3</span>
+              {totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 text-[10px] bg-blue-500 text-white rounded-full px-1.5 py-0.5">{totalItems}</span>
+              )}
             </button>
             <button className="p-2 rounded-lg hover:bg-white/10 transition-colors" aria-label="Account">
               <User className="w-6 h-6" />
@@ -62,6 +68,7 @@ export default function Navbar() {
           </div>
         )}
       </div>
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
     </header>
   )
 }
